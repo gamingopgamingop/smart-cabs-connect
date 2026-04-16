@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Car } from "lucide-react";
+import { Menu, X, Car, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { label: "Home", path: "/" },
@@ -15,6 +16,13 @@ const navItems = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -46,14 +54,25 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-            <Link to="/login">
-              <Button variant="ghost" size="sm">Log in</Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm" className="gradient-bg text-primary-foreground hover:opacity-90">
-                Sign up
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground">{user.email}</span>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-1" /> Log out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">Log in</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm" className="gradient-bg text-primary-foreground hover:opacity-90">
+                    Sign up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -89,12 +108,20 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                <Link to="/login" className="flex-1" onClick={() => setIsOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full">Log in</Button>
-                </Link>
-                <Link to="/signup" className="flex-1" onClick={() => setIsOpen(false)}>
-                  <Button size="sm" className="w-full gradient-bg text-primary-foreground">Sign up</Button>
-                </Link>
+                {user ? (
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => { setIsOpen(false); handleSignOut(); }}>
+                    <LogOut className="w-4 h-4 mr-1" /> Log out
+                  </Button>
+                ) : (
+                  <>
+                    <Link to="/login" className="flex-1" onClick={() => setIsOpen(false)}>
+                      <Button variant="outline" size="sm" className="w-full">Log in</Button>
+                    </Link>
+                    <Link to="/signup" className="flex-1" onClick={() => setIsOpen(false)}>
+                      <Button size="sm" className="w-full gradient-bg text-primary-foreground">Sign up</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

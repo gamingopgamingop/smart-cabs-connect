@@ -1,12 +1,32 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, Car, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Welcome back! 🎉" });
+      navigate("/dashboard");
+    }
+  };
 
   return (
     <div className="min-h-screen gradient-hero-bg flex items-center justify-center pt-16 pb-10 px-4">
@@ -24,12 +44,12 @@ const Login = () => {
         </div>
 
         <div className="glass-card p-8">
-          <form onSubmit={(e) => { e.preventDefault(); alert("Login successful! 🎉"); }} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1 block">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input type="email" placeholder="you@example.com" className="pl-9" required />
+                <Input type="email" placeholder="you@example.com" className="pl-9" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
             </div>
             <div>
@@ -41,14 +61,16 @@ const Login = () => {
                   placeholder="••••••••"
                   className="pl-9 pr-10"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full gradient-bg text-primary-foreground hover:opacity-90 h-11">
-              Sign In
+            <Button type="submit" disabled={loading} className="w-full gradient-bg text-primary-foreground hover:opacity-90 h-11">
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
           <p className="text-center text-sm text-muted-foreground mt-6">
