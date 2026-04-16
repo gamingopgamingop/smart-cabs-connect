@@ -54,14 +54,25 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-            <Link to="/login">
-              <Button variant="ghost" size="sm">Log in</Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm" className="gradient-bg text-primary-foreground hover:opacity-90">
-                Sign up
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <span className="text-sm text-muted-foreground">{user.email}</span>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-1" /> Log out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">Log in</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm" className="gradient-bg text-primary-foreground hover:opacity-90">
+                    Sign up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <button
