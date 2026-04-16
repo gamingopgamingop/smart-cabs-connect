@@ -108,12 +108,20 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                <Link to="/login" className="flex-1" onClick={() => setIsOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full">Log in</Button>
-                </Link>
-                <Link to="/signup" className="flex-1" onClick={() => setIsOpen(false)}>
-                  <Button size="sm" className="w-full gradient-bg text-primary-foreground">Sign up</Button>
-                </Link>
+                {user ? (
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => { setIsOpen(false); handleSignOut(); }}>
+                    <LogOut className="w-4 h-4 mr-1" /> Log out
+                  </Button>
+                ) : (
+                  <>
+                    <Link to="/login" className="flex-1" onClick={() => setIsOpen(false)}>
+                      <Button variant="outline" size="sm" className="w-full">Log in</Button>
+                    </Link>
+                    <Link to="/signup" className="flex-1" onClick={() => setIsOpen(false)}>
+                      <Button size="sm" className="w-full gradient-bg text-primary-foreground">Sign up</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
