@@ -1,13 +1,42 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, Car, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<"rider" | "driver">("rider");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName, role },
+        emailRedirectTo: window.location.origin,
+      },
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Signup failed", description: error.message, variant: "destructive" });
+    } else {
+      // If the selected role is driver, add driver role after signup
+      toast({ title: "Account created! 🎉", description: "Check your email to verify your account." });
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="min-h-screen gradient-hero-bg flex items-center justify-center pt-16 pb-10 px-4">
@@ -25,7 +54,6 @@ const Signup = () => {
         </div>
 
         <div className="glass-card p-8">
-          {/* Role Toggle */}
           <div className="flex rounded-xl bg-muted p-1 mb-6">
             <button
               onClick={() => setRole("rider")}
@@ -41,19 +69,19 @@ const Signup = () => {
             </button>
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); alert("Account created! 🎉"); }} className="space-y-4">
+          <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1 block">Full Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Your name" className="pl-9" required />
+                <Input placeholder="Your name" className="pl-9" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
               </div>
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input type="email" placeholder="you@example.com" className="pl-9" required />
+                <Input type="email" placeholder="you@example.com" className="pl-9" required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
             </div>
             <div>
@@ -65,14 +93,16 @@ const Signup = () => {
                   placeholder="••••••••"
                   className="pl-9 pr-10"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full gradient-bg text-primary-foreground hover:opacity-90 h-11">
-              Create Account as {role === "rider" ? "Rider" : "Driver"}
+            <Button type="submit" disabled={loading} className="w-full gradient-bg text-primary-foreground hover:opacity-90 h-11">
+              {loading ? "Creating account..." : `Create Account as ${role === "rider" ? "Rider" : "Driver"}`}
             </Button>
           </form>
           <p className="text-center text-sm text-muted-foreground mt-6">
